@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-export const dynamic = 'force-dynamic';
 import { runReconciliation } from '@/lib/engine';
 import { MatchResult } from '@/lib/types';
 
