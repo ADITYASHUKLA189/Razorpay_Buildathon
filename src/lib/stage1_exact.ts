@@ -11,11 +11,12 @@ export function runStage1(
 } {
   const matches: MatchResult[] = [];
   const unresolvedSettlements: UnresolvedSettlement[] = [];
-  const ledgerSet = new Set(ledgers);
+  let ledgerSet = [...ledgers];
 
   for (const settlement of settlements) {
     let matched = false;
-    for (const ledger of ledgerSet) {
+    for (let i = 0; i < ledgerSet.length; i++) {
+      const ledger = ledgerSet[i];
       if (normalize(settlement.orderRef) === normalize(ledger.orderRef)) {
         // Fee model: fee = round(gross * 0.02 + 2, 2)
         const gross = Number(ledger.grossAmount);
@@ -33,7 +34,7 @@ export function runStage1(
               confidence: 1.0,
               note: 'Exact match'
             });
-            ledgerSet.delete(ledger);
+            ledgerSet.splice(i, 1);
             matched = true;
             break;
           }
@@ -48,6 +49,6 @@ export function runStage1(
   return {
     matches,
     unresolvedSettlements,
-    unresolvedLedgers: Array.from(ledgerSet)
+    unresolvedLedgers: ledgerSet
   };
 }

@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reconcilr
 
-## Getting Started
+AI-assisted finance reconciliation agent for Razorpay AI Buildathon 2026.
 
-First, run the development server:
+## Overview
+Reconcilr bridges the gap between payment-gateway settlement files and internal order ledgers using a three-stage pipeline:
+1. **Exact Match**: Joins on normalized reference, expected settled amount (Gross - Fee), and date within 1 day.
+2. **Rule-based Fuzzy Match**: Scores remaining items using Dice coefficient string similarity and heuristics.
+3. **AI-assisted Review**: Uses Gemini API for genuinely ambiguous pairs, falling back to rule-based candidates if AI is unavailable.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
+- Next.js 14 (App Router)
+- PostgreSQL & Prisma
+- Tailwind CSS & shadcn/ui
+- Gemini SDK (`gemini-2.5-flash`)
+- Server-Sent Events (SSE) for realtime frontend updates
+- Vitest for unit tests
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Copy `.env.example` to `.env` and fill in your details:
+   ```
+   cp .env.example .env
+   ```
+   Required variables:
+   - `DATABASE_URL`: Hosted PostgreSQL connection string (Neon or Supabase free tier).
+   - `GEMINI_API_KEY`: Gemini API Key.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-## Learn More
+3. Initialize the database schema:
+   ```
+   npx prisma db push
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run unit tests:
+   ```
+   npm run test
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Start the dev server:
+   ```
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploying
+This project is designed to be deployed to Vercel as a single unit (Frontend + API Routes). 
+Connect the repository to your Vercel account, set `DATABASE_URL` and `ANTHROPIC_API_KEY` in the Vercel Environment Variables dashboard, and deploy.
