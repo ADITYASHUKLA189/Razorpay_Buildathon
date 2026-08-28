@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Batch {
+  id            String         @id @default(cuid())
+  seed          Int
+  createdAt     DateTime       @default(now())
+  settlements   Settlement[]
+  ledgerEntries LedgerEntry[]
+  matches       Match[]
+}
+
+model Settlement {
+  id            String   @id @default(cuid())
+  batchId       String
+  settlementRef String
+  orderRef      String
+  amountSettled Decimal
+  settledDate   DateTime
+  batch         Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  batchId     String
+  ledgerRef   String
+  orderRef    String
+  grossAmount Decimal
+  orderDate   DateTime
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model Match {
+  id             String   @id @default(cuid())
+  batchId        String
+  settlementId   String?
+  ledgerEntryId  String?
+  stage          String
+  confidence     Float
+  note           String
+  correctVsTruth Boolean?
+  batch          Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model GroundTruth {
+  id             String  @id @default(cuid())
+  batchId        String
+  settlementId   String  @unique
+  trueLedgerId   String?
+}
