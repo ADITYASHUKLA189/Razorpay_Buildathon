@@ -9,24 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0B0A08",
-        surface: "#161310",
-        border: "#312B21",
-        text: "#F3EEE3",
-        dim: "#A79C87",
-        gold: {
-          DEFAULT: "#C9A227",
-          bright: "#E0BE45"
-        },
+        background: "#09090b", // zinc-950
+        surface: "rgba(24, 24, 27, 0.5)", // zinc-900/50
+        text: "#fafafa", // zinc-50
+        dim: "#a1a1aa", // zinc-400
         stage: {
-          exact: "#8AAE7E",
-          rule: "#C9A227",
-          ai: "#5C9C93",
-          exception: "#C1652E"
+          exact: "#10b981", // emerald-500
+          rule: "#f59e0b", // amber-500
+          ai: "#6366f1", // indigo-500
+          exception: "#ef4444" // red-500
         }
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "serif"],
+        display: ["var(--font-inter)", "sans-serif"],
         body: ["var(--font-inter)", "sans-serif"],
         mono: ["var(--font-jetbrains)", "monospace"],
       },
