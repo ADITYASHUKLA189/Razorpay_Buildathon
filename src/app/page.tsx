@@ -1,12 +1,23 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, CheckCircle2, AlertTriangle, BrainCircuit, Flag, ChevronRight, Play, FileDown, RefreshCw, BarChart } from "lucide-react";
+import { Terminal, CheckCircle2, AlertTriangle, BrainCircuit, Flag, ChevronRight, Play, FileDown, RefreshCw, BarChart, UploadCloud, X } from "lucide-react";
 import { MatchResult } from "@/lib/types";
 
 // Helper for classes
 const cn = (...classes: (string | undefined | boolean)[]) => classes.filter(Boolean).join(" ");
+
+const parseCSV = (csvString: string) => {
+  const lines = csvString.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const values = line.split(',');
+    const obj: any = {};
+    headers.forEach((h, i) => { obj[h] = values[i]?.trim(); });
+    return obj;
+  });
+};
 
 const RadialProgress = ({ value, label, color = "text-amber-500" }: { value: number; label: string; color?: string }) => {
   const radius = 28;
@@ -48,6 +59,13 @@ export default function Home() {
   const [elapsed, setElapsed] = useState(0);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
+  // Upload State
+  const [showUpload, setShowUpload] = useState(false);
+  const [ledgerFile, setLedgerFile] = useState<File | null>(null);
+  const [settleFile, setSettleFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (status === 'running' && startTime) {
@@ -63,6 +81,7 @@ export default function Home() {
     setLiveStats({ processed: 0, correct: 0, gradable: 0, stages: { exact: 0, rule: 0, ai: 0, exception: 0 } });
     setElapsed(0);
     setExpandedRow(null);
+    setShowUpload(false);
     try {
       const res = await fetch("/api/batch", { method: "POST" });
       if (!res.ok) throw new Error("Failed to generate batch");
@@ -73,6 +92,43 @@ export default function Home() {
     } catch (e: any) {
       setErrorMsg(e.message);
       setStatus("error");
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!ledgerFile || !settleFile) return setUploadError("Please select both CSV files.");
+    setIsUploading(true);
+    setUploadError("");
+    try {
+      const ledgers = parseCSV(await ledgerFile.text());
+      const settlements = parseCSV(await settleFile.text());
+      
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ledgers, settlements })
+      });
+      
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(err.error || "Upload failed");
+      }
+      
+      const data = await res.json();
+      setBatchId(data.batchId);
+      setSeed(null);
+      setMatches([]);
+      setLiveStats({ processed: 0, correct: 0, gradable: 0, stages: { exact: 0, rule: 0, ai: 0, exception: 0 } });
+      setElapsed(0);
+      setExpandedRow(null);
+      setStatus("ready");
+      setShowUpload(false);
+      setLedgerFile(null);
+      setSettleFile(null);
+    } catch (err: any) {
+      setUploadError(err.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -199,12 +255,19 @@ export default function Home() {
         
         <div className="flex items-center gap-4">
           <button 
+            onClick={() => setShowUpload(!showUpload)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors border border-white/10 rounded-md hover:bg-white/5"
+          >
+            <UploadCloud className="w-4 h-4" /> Upload Custom
+          </button>
+
+          <button 
             onClick={generateBatch} 
             disabled={status === "generating" || status === "running"}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors disabled:opacity-50"
           >
             <RefreshCw className={cn("w-4 h-4", status === "generating" && "animate-spin")} />
-            {status === "generating" ? "Generating..." : "New Batch"}
+            {status === "generating" ? "Generating..." : "Synth Batch"}
           </button>
           
           <button 
@@ -220,10 +283,50 @@ export default function Home() {
             disabled={status !== "done"}
             className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-md text-sm font-medium hover:bg-white/5 hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:text-indigo-300 transition-all active:scale-95 disabled:opacity-30 disabled:hover:shadow-none disabled:hover:border-white/10"
           >
-            <FileDown className="w-4 h-4" /> Export Report
+            <FileDown className="w-4 h-4" /> Export
           </button>
         </div>
       </header>
+
+      {/* UPLOAD MODAL/DRAWER */}
+      <AnimatePresence>
+        {showUpload && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-zinc-900/50 border-b border-white/5 overflow-hidden"
+          >
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-8 flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold">Upload CSV Data</h3>
+                <button onClick={() => setShowUpload(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
+              </div>
+              <p className="text-zinc-400 text-sm max-w-2xl">
+                Upload your own CSV files to test Reconcilr. Expected format for Ledgers: <code>ledgerRef, orderRef, grossAmount, orderDate</code>. For Settlements: <code>settlementRef, orderRef, amountSettled, settledDate</code>.
+              </p>
+              <div className="flex gap-8">
+                <div className="flex-1 border border-dashed border-white/10 rounded-xl p-6 bg-zinc-950 flex flex-col items-center justify-center gap-2">
+                   <span className="text-sm font-medium text-zinc-300">Ledgers CSV</span>
+                   <input type="file" accept=".csv" onChange={(e) => setLedgerFile(e.target.files?.[0] || null)} className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20"/>
+                </div>
+                <div className="flex-1 border border-dashed border-white/10 rounded-xl p-6 bg-zinc-950 flex flex-col items-center justify-center gap-2">
+                   <span className="text-sm font-medium text-zinc-300">Settlements CSV</span>
+                   <input type="file" accept=".csv" onChange={(e) => setSettleFile(e.target.files?.[0] || null)} className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20"/>
+                </div>
+              </div>
+              {uploadError && <div className="text-red-400 text-sm">{uploadError}</div>}
+              <button 
+                onClick={handleUpload} 
+                disabled={isUploading || !ledgerFile || !settleFile}
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold w-max disabled:opacity-50 transition-colors"
+              >
+                {isUploading ? "Uploading..." : "Upload & Prepare"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 pt-12 flex flex-col gap-12">
         
