@@ -370,7 +370,7 @@ export default function Home() {
             </div>
 
             <div className="bg-indigo-950/20 border border-indigo-900/30 rounded-xl p-5 flex flex-col gap-1 relative overflow-hidden">
-              <span className="text-xs uppercase tracking-widest text-indigo-400/70 font-medium flex items-center gap-2">AI Matches <span className="text-[9px] px-1.5 py-0.5 rounded border border-indigo-500/30 bg-indigo-500/10">3.6-FLASH</span></span>
+              <span className="text-xs uppercase tracking-widest text-indigo-400/70 font-medium flex items-center gap-2">AI Matches <span className="text-[9px] px-1.5 py-0.5 rounded border border-indigo-500/30 bg-indigo-500/10">2.5-FLASH</span></span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-4xl font-mono text-indigo-400">{liveStats.stages.ai}</span>
                 <span className="text-xs text-indigo-500/50 font-mono">/ {liveStats.processed}</span>
@@ -520,7 +520,7 @@ export default function Home() {
                                     <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
                                     <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/50"></div>
                                   </div>
-                                  <span className="text-[10px] font-mono text-zinc-500">gemini-3.6-flash output</span>
+                                  <span className="text-[10px] font-mono text-zinc-500">gemini-2.5-flash output</span>
                                 </div>
                                 <div className="p-4 overflow-auto max-h-64 font-mono text-xs text-indigo-300/80 leading-relaxed">
                                   <pre>
