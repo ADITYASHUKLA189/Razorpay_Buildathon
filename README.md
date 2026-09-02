@@ -20,7 +20,7 @@ Unresolved candidates fall to Stage 2, which runs a custom heuristic scoring alg
 - **Date Proximity (20%):** Weighs temporal drift.
 If a candidate crosses a high threshold and beats the runner-up score by a safe margin, it is auto-matched.
 
-### Stage 3: AI-Assisted Review (Gemini 3.6 Flash)
+### Stage 3: AI-Assisted Review (Gemini 2.5 Flash)
 Genuinely ambiguous edge cases (e.g., identical amounts on the exact same day with corrupted reference IDs) are batched and sent to an LLM. The AI receives highly structured JSON context containing only the top 3 scored candidates and is forced to output a strict JSON decision with readable reasoning.
 
 ### Fallbacks & Exceptions
@@ -33,9 +33,10 @@ If the AI is unreachable, Reconcilr degrades gracefully back to the highest-scor
 We built a gorgeous, Vercel/Linear-inspired dark mode dashboard to visualize the reconciliation process in real-time.
 
 **Features:**
+- **Custom CSV Uploading:** Securely parse and upload your own Ledgers and Settlements `.csv` files locally to test the engine, or click "Synth Batch" to instantly generate 52 mathematically crafted edge-cases for testing.
 - **Live Streamed Results:** Server-Sent Events (SSE) stream matches to the frontend as the pipeline processes the batch.
 - **Interactive Segmented Bar:** Watch the exact, rule-based, and AI matches fill up a visual pipeline bar dynamically.
-- **Glassmorphic Table:** A premium data table that elegantly houses your resolution results. 
+- **Glassmorphic Table:** A premium data table that elegantly houses your resolution results with Fluid Framer Motion animations. 
 - **Expandable Proof of Work:** Click into any AI-matched row to see the exact reasoning the model used, the top candidates it analyzed, and the raw JSON it returned. Click into a Rule-matched row to see the exact mathematical score breakdown.
 - **Export to CSV:** One-click generation of a comprehensive, human-readable CSV report complete with summary metrics.
 
@@ -46,7 +47,7 @@ We built a gorgeous, Vercel/Linear-inspired dark mode dashboard to visualize the
 - **Framework:** Next.js 14 (App Router)
 - **Database:** PostgreSQL (Hosted on Supabase)
 - **ORM:** Prisma
-- **AI Model:** Google Gemini (`gemini-3.6-flash`) via native SDK
+- **AI Model:** Google Gemini (`gemini-2.5-flash`) via native SDK
 - **Styling:** Tailwind CSS (Custom Dark UI Theme)
 - **Streaming:** Server-Sent Events (SSE)
 
